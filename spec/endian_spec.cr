@@ -8,6 +8,18 @@ lib C
 	end
 end
 
+# Wrapper structure that has the same memory layout as C::Example, but allows for custom accessors with non-primitive types
+struct Example
+	@value = C::Example.new()
+
+	def value()
+		@value.value.unsafe_as(BigEndian16)
+	end
+	def self.unsafe_from_ptr( ptr : Pointer(_) )
+		ptr.unsafe_as(Pointer(Example)).value
+	end
+end
+
 describe Endian do
   # TODO: Write tests
 	describe BigEndian16 do
@@ -35,11 +47,9 @@ describe Endian do
 			be1.to_u8.should eq(80_u8)
 		end
 		it "Works in binding structures" do
-			example_ptr = "01:23:45:67:89:AB 10:32:54:76:98:BA 0100".gsub(/[^0-9A-Fa-f]/,"").hexbytes.to_unsafe.unsafe_as(Pointer(C::Example))
+			example = Example.unsafe_from_ptr("01:23:45:67:89:AB 10:32:54:76:98:BA 0100".from_hex.to_unsafe)
 
-			# This is very ugly
-			puts example_ptr.value
-			example_ptr.value.unsafe_as(BigEndian16).to_u16.should eq(256_u16)
+			example.value.to_u16.should eq(256_u16)
 		end
 	end
 end

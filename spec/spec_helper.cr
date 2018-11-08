@@ -14,3 +14,9 @@ class Array(T)
 	end
 end
 
+class String
+	def from_hex()
+		self.gsub(/[^0-9A-Fa-f]/,"").hexbytes
+	end
+end
+
